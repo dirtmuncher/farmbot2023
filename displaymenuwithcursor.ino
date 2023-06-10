@@ -19,7 +19,10 @@ boolean lastButtonStateRight = LOW;
 boolean currentButtonStateRight  = LOW; 
 boolean buttonStateEnter = LOW;           // Button states for the "Enter"  command
 boolean lastButtonStateEnter = LOW;
-boolean currentButtonStateEnter  = LOW;                
+boolean currentButtonStateEnter  = LOW;      
+
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 75;    // the debounce time; increase if the output flickers
 
 template< typename T, size_t NumberOfSize > 
 size_t MenuItemsSize(T (&) [NumberOfSize]){ return NumberOfSize; }
@@ -41,7 +44,6 @@ void setup()
   lcd.init();
   lcd.backlight();
   lcd.clear();
-
   lcd.setCursor(0, 0);
   for(int i = 0; i < 11; i ++){
     lcd.print(".");
@@ -61,30 +63,30 @@ void menuFunctions(int menu)  // Your menü functions
   lcd.clear();
   lcd.setCursor(0,0);
 
-  if(menu == 1) {
-    lcd.print("BROCCOLI SELECTED");
+  if(menu == 0) {
+    lcd.print("CUCUMBER SELECT");
     lcd.setCursor(0,1);
     lcd.print("shit dont work bruh");
   }
-  if(menu == 2) // example function for 2. menü item
+  if(menu == 1) // example function for 2. menü item
   {
-    lcd.print("LETTUCE SELECTED");
+    lcd.print("LETTUCE SELECT");
+    lcd.setCursor(0,1);
+    lcd.print("shit dont work bruh");
+  }
+  if(menu == 2)
+  {
+    lcd.print("CHIVE SELECT");
     lcd.setCursor(0,1);
     lcd.print("shit dont work bruh");
   }
   if(menu == 3)
   {
-    lcd.print("CUCUMBER SELECTED");
-    lcd.setCursor(0,1);
-    lcd.print("shit dont work bruh");
-  }
-  if(menu == 4)
-  {
-    lcd.print("BATTERY SELECTED");
+    lcd.print("BATTERY SELECT");
     lcd.setCursor(0,1);
     lcd.print("it dead bruh");
   }
-    if(menu == 5)
+    if(menu == 4)
   {
     lcd.print("exit");
     lcd.setCursor(0,1);
@@ -102,30 +104,38 @@ void loop()
   currentButtonStateRight = digitalRead(rightButtonPin);
   currentButtonStateEnter = digitalRead(enterButtonPin);
 
-    if (currentButtonStateRight != buttonStateRight){ // if left button is pressed
-      buttonStateRight = currentButtonStateRight;
-      currentMenuItem--;
+  if (currentButtonStateRight != lastButtonStateRight || currentButtonStateLeft != lastButtonStateLeft || currentButtonStateEnter != lastButtonStateEnter) {
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+      if (currentButtonStateRight == HIGH){ // if left button is pressed
+        buttonStateRight = currentButtonStateRight;
+        currentMenuItem--;
+        delay(600);
       if(currentMenuItem < 0)
       {
         currentMenuItem = 0;
       }
     }
-
-    if (currentButtonStateLeft != buttonStateLeft){ // if left button is pressed
-      buttonStateLeft = currentButtonStateLeft;
-      ++currentMenuItem;
+    if (currentButtonStateLeft == HIGH){ // if left button is pressed
+        buttonStateLeft = currentButtonStateLeft;
+        ++currentMenuItem;
+        delay(600);
       if(currentMenuItem > numberOfMenuItems ){
         currentMenuItem = numberOfMenuItems;
       }
     }
+  }
 
-    if (currentButtonStateEnter != buttonStateEnter){ // if enter is pressed
+    if (currentButtonStateEnter == HIGH){ // if enter is pressed
       buttonStateEnter = currentButtonStateEnter;
+      delay(600);
       menuFunctions(currentMenuItem);
     }
 
   lastButtonStateLeft  = currentButtonStateLeft;       // resets the left button state to LOW
   lastButtonStateRight  = currentButtonStateRight;     // resets the right button state to LOW
   lastButtonStateEnter  = currentButtonStateEnter;     // resets the enter button state to LOW
-  delay(400);
+  delay(100);
 }
